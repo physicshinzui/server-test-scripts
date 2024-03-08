@@ -1,9 +1,10 @@
 #!/bin/bash 
 set -eu 
+cat <<EOF 
 
-# cpu gromacs
-#singularity build --fakeroot --sandbox 01_gmx_cpu 01_gmx_cpu.def 
-singularity build --fakeroot gmx_cpu.sif gmx_cpu.def 
+A short MD run is performed for alanine dipeptide. 
 
-# 02 gromacs on gpu
-#singularity build --nv --fakeroot 02_gmx_gpu.sif 02_gmx_gpu.def
+EOF
+cd test_md 
+singularity exec ../gmx_cpu.sif ./01_system_prep.sh test_systems/02_pdbs/diala.pdb
+
