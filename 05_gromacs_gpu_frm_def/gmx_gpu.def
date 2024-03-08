@@ -1,0 +1,37 @@
+# Installation of GROMACS 2022.5
+
+BootStrap: library
+From: ubuntu:22.04
+
+%post
+    apt-get update
+    apt-get install -y sudo wget vim
+    echo y 79 | apt-get install cmake 
+    apt-get install -y gcc g++
+
+# install gromacs 
+%post
+    version=2022.5
+    cd /home
+    wget https://ftp.gromacs.org/gromacs/gromacs-${version}.tar.gz
+    tar zxvf gromacs-${version}.tar.gz
+    cd gromacs-${version}
+    mkdir build 
+    cd build 
+    cmake -D CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda .. \
+        -DGMX_BUILD_OWN_FFTW=ON \
+        -DGMX_GPU=CUDA \
+        -DGMX_OPENMP=ON 
+    make -j 16 
+    make install 
+
+%environment
+    export PATH=/usr/local/gromacs/bin:$PATH
+    export LIBRARY_PATH=/usr/local/gromacs/lib:$LIBRARY_PATH 
+    export LD_LIBRARY_PATH=/usr/local/gromacs/lib:$LD_LIBRARY_PATH
+
+%runscript 
+    gmx 
+
+%labels 
+    Author: shinji iida
