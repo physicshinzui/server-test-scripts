@@ -10,7 +10,7 @@ echo Protein | ${GMX} editconf -f processed.gro \
                 -o newbox.gro    \
                 -d 1.0           \
                 -princ           \
-                -bt dodecahedron
+                -bt cubic
 
 ${GMX} solvate -cp newbox.gro \
                -cs spc216.gro \
