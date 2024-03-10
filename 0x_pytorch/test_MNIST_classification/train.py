@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader 
 from torchvision import datasets
 from torchvision.transforms import ToTensor 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from models import SimpleLinearModel, LinearModel, MLP, MLP_softmax, CNN
 from tqdm import tqdm 
 # from torch.utils.tensorboard import SummaryWriter
