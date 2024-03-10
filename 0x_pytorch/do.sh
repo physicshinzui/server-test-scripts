@@ -1,9 +1,17 @@
 #!/bin/bash 
 set -eu 
 
-#singularity build torch-24.02-py3-igpu.sif docker://nvcr.io/nvidia/pytorch:24.02-py3-igpu
-#singularity build torch.sif docker://nvcr.io/nvidia/pytorch:24.02-py3
-#singularity build torch.sif docker://nvcr.io/nvidia/pytorch:23.11-py3-igpu
-singularity pull torch2.0.0-cuda11.70cudnn8.sif docker://pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+# Create sif file
+#singularity pull torch2.0.0-cuda11.70cudnn8.sif docker://pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
 
-#singularity build --fakeroot torch.sif torch.def
+# Execute a training
+cd test_MNIST_classification
+## GPU
+mkdir gpu; cd gpu
+singularity exec --nvccli ../../torch2.0.0-cuda11.70cudnn8.sif python ../train.py | tee train.log
+cd ..
+
+## CPU
+mkdir cpu; cd cpu
+singularity exec ../../torch2.0.0-cuda11.70cudnn8.sif python ../train.py | tee train.log
+cd ..
