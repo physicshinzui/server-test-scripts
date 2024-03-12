@@ -1,0 +1,75 @@
+# Installation of GROMACS 2022.5 patched with PLUMED
+
+BootStrap: docker 
+From: nvcr.io/nvidia/cuda:11.7.1-devel-ubuntu22.04
+#From: nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu20.04
+# ^ this does not work because of no sufficient CUDA tools, such as nvcc.
+
+%post
+    apt-get update
+    apt-get install -y sudo wget vim
+    echo y 79 | apt-get install cmake unzip
+    apt-get install -y \
+        gcc g++ \
+        openmpi-bin \
+        libopenmpi-dev
+
+%post 
+    cd /home
+    version_plumed=2.8.3
+    wget https://github.com/plumed/plumed2/archive/refs/tags/v${version_plumed}.zip
+    unzip v${version_plumed}.zip
+    cd plumed2-${version_plumed}
+    mkdir build
+    ./configure --enable-mpi --prefix=$PWD --enable-modules=all
+    make -j 16
+    make install 
+
+    export PATH=/home/plumed2-${version_plumed}/bin:$PATH
+    export PATH=/home/plumed2-${version_plumed}/include:$PATH
+    export LD_LIBRARY_PATH=/home/plumed2-${version_plumed}/lib:$LD_LIBRARY_PATH
+    export PATH=/home/plumed2-${version_plumed}/lib/pkgconfig:$PATH
+
+     # install gromacs
+     version=2022.5
+     wget https://ftp.gromacs.org/gromacs/gromacs-${version}.tar.gz
+     tar zxvf gromacs-${version}.tar.gz
+     cd gromacs-${version}
+     echo 4 | plumed patch -p # Patch
+     mkdir build 
+     cd build
+ 
+     CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
+     cmake -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}\
+           -DCUDA_NVCC_EXECUTABLE=${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc \
+           -DCUDA_INCLUDE_DIRS=${CUDA_TOOLKIT_ROOT_DIR}/include \
+           -DCUDA_CUDART_LIBRARY=${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so \
+           -DGMX_BUILD_OWN_FFTW=ON \
+           -DGMX_GPU=CUDA \
+           -DGMX_MPI=ON \
+           ..
+ 
+     make -j 16
+     make install 
+
+%environment
+
+    # Gromacs
+    export PATH=/usr/local/gromacs/bin:$PATH
+    export LIBRARY_PATH=/usr/local/gromacs/lib:$LIBRARY_PATH 
+    export LD_LIBRARY_PATH=/usr/local/gromacs/lib:$LD_LIBRARY_PATH
+
+    # PLUMED
+    version_plumed=2.8.3
+    export PATH=/home/plumed2-${version_plumed}/bin:$PATH
+    export PATH=/home/plumed2-${version_plumed}/include:$PATH
+    export LD_LIBRARY_PATH=/home/plumed2-${version_plumed}/lib:$LD_LIBRARY_PATH
+    export PATH=/home/plumed2-${version_plumed}/lib/pkgconfig:$PATH
+
+
+%runscript 
+    gmx_mpi --version 
+
+%labels 
+    Author Shinji Iida 
+    Description This container provides Gromacs patched with PLUMED.
